@@ -1,0 +1,10 @@
+## Interface: 120007, 120100
+## Title: BetterGearInfo
+## Title-zhCN: BetterGearInfo
+## Notes: Character panel styling and equipped gear details for WoW Retail.
+## Notes-zhCN: 角色界面美化与当前装备详情，支持观察其他玩家。
+## Author: StareAbyss
+## Version: 2.6.4
+## OptionalDeps: TinyInspect-Reforged, ElvUI_WindTools
+
+BetterGearInfo.lua
