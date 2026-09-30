@@ -6,6 +6,10 @@ Character panel styling and equipped gear details for World of Warcraft Retail 1
 
 独立的角色界面美化与装备详情插件。左侧展示角色模型、属性与装备栏，右侧展示当前穿戴的装备、装等、绿字属性、宝石、附魔和套装进度。界面文案目前主要为简体中文。
 
+## 界面预览
+
+![BetterGearInfo 角色界面与装备详情展示](docs/images/character-panel.png)
+
 ## 功能
 
 - 深色角色界面，外框使用与中性灰混合的柔和职业色；左右面板相接处显示一像素边框。
