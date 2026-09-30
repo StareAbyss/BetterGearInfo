@@ -1,10 +1,7 @@
 # BetterGearInfo
 
-Character panel styling and equipped gear details for World of Warcraft Retail 12.x.
-
-作者：**StareAbyss**
-
-独立的角色界面美化与装备详情插件。左侧展示角色模型、属性与装备栏，右侧展示当前穿戴的装备、装等、绿字属性、宝石、附魔和套装进度。界面文案目前主要为简体中文。
+适用于《魔兽世界》正式服 12.x 的独立插件，美化角色界面，并展示自身及被观察玩家的装备、装等、属性、附魔、宝石和套装进度。<br>
+A standalone addon for World of Warcraft Retail 12.x, featuring a styled character panel and equipped gear details for yourself and inspected players, including item levels, stats, enchantments, gems, and set progress.
 
 ## 界面预览
 
@@ -38,7 +35,7 @@ World of Warcraft/_retail_/Interface/AddOns/BetterGearInfo/
 
 GitHub 自动检查的 `BetterGearInfo` 构建产物内包含安装 ZIP。若下载的是 GitHub 源码 ZIP，解压后请将目录重命名为 `BetterGearInfo`；开发文件无需安装到游戏中。
 
-支持正式服 12.x。插件使用游戏原生纹理与 API，无需安装其他界面插件。已安装的附魔索引库可补充具体附魔的物品或法术提示；其他观察插件的重复装备清单会被隐藏，其其他功能继续保留。
+支持正式服 12.x，界面文案目前主要为简体中文。插件使用游戏原生纹理与 API，无需安装其他界面插件。已安装的附魔索引库可补充具体附魔的物品或法术提示；其他观察插件的重复装备清单会被隐藏，其其他功能继续保留。
 
 ## 命令
 
