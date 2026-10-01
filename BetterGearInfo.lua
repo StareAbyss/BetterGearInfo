@@ -3,7 +3,7 @@
 -- 在此基础上重新做了美化和修复。
 local addonName = ...
 local addonVersion = C_AddOns and C_AddOns.GetAddOnMetadata
-    and C_AddOns.GetAddOnMetadata(addonName, "Version") or "2.6.4"
+    and C_AddOns.GetAddOnMetadata(addonName, "Version") or "1.0.0"
 
 local unpack = unpack
 local WHITE = "Interface\\Buttons\\WHITE8X8"
@@ -38,6 +38,7 @@ local slots = {
 local slotButtons = {
     [1] = "CharacterHeadSlot", [2] = "CharacterNeckSlot",
     [3] = "CharacterShoulderSlot", [5] = "CharacterChestSlot",
+    [4] = "CharacterShirtSlot", [19] = "CharacterTabardSlot",
     [6] = "CharacterWaistSlot", [7] = "CharacterLegsSlot",
     [8] = "CharacterFeetSlot", [9] = "CharacterWristSlot",
     [10] = "CharacterHandsSlot", [11] = "CharacterFinger0Slot",
@@ -239,6 +240,68 @@ local function SkinPanel(frame, color, inset)
     AddBorder(frame, BORDER)
 end
 
+local equipmentVisualHooksInstalled = false
+
+local function SuppressEquipmentSlotBorders(slot)
+    if slot.IconBorder then slot.IconBorder:SetAlpha(0) end
+    -- Some inspection addons create their extra frame after the slot is skinned.
+    local extra = slot.angularFrame
+    if extra then
+        extra:SetAlpha(0)
+        if not extra.BetterGearInfoBorderSuppressed then
+            extra.BetterGearInfoBorderSuppressed = true
+            extra:HookScript("OnShow", function(self)
+                self:SetAlpha(0)
+                self:Hide()
+            end)
+        end
+        extra:Hide()
+    end
+end
+
+local function RefreshEquipmentSlotVisuals(slot)
+    if not slot or not slot.BetterGearInfoSkinned then return end
+    local name = slot:GetName()
+    local icon = slot.icon or slot.Icon or (name and _G[name .. "IconTexture"])
+    if icon then
+        -- Zoom the existing crop by 15% without changing the icon bounds.
+        local crop = (1 - 0.84 / 1.15) / 2
+        icon:SetTexCoord(crop, 1 - crop, crop, 1 - crop)
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT", slot, "TOPLEFT", 2, -2)
+        icon:SetPoint("BOTTOMRIGHT", slot, "BOTTOMRIGHT", -2, 2)
+    end
+    SuppressEquipmentSlotBorders(slot)
+    if slot.BetterGearInfoBorder then
+        local quality = GetInventoryItemQuality("player", slot:GetID())
+        local r, g, b = 0.16, 0.16, 0.16
+        if quality ~= nil then r, g, b = C_Item.GetItemQualityColor(quality) end
+        TintBorder(slot.BetterGearInfoBorder, r, g, b)
+    end
+    local normal = slot:GetNormalTexture()
+    if normal then normal:SetTexture(nil) end
+    local pushed = slot:GetPushedTexture()
+    if pushed then pushed:SetTexture(nil) end
+    local highlight = slot:GetHighlightTexture()
+    if highlight then
+        highlight:SetTexture(WHITE)
+        highlight:SetVertexColor(1, 1, 1, 0.14)
+        highlight:SetAllPoints()
+    end
+end
+
+local function QueueEquipmentSlotVisuals(slot)
+    if not slot or not slot.BetterGearInfoSkinned then return end
+    RefreshEquipmentSlotVisuals(slot)
+    if slot.BetterGearInfoVisualsQueued then return end
+    slot.BetterGearInfoVisualsQueued = true
+    -- Apply after the remaining native and addon update callbacks have finished.
+    C_Timer.After(0, function()
+        slot.BetterGearInfoVisualsQueued = false
+        RefreshEquipmentSlotVisuals(slot)
+    end)
+end
+
 local function SkinEquipmentSlot(slot)
     if not slot or slot.BetterGearInfoSkinned then return end
     slot.BetterGearInfoSkinned = true
@@ -254,23 +317,26 @@ local function SkinEquipmentSlot(slot)
     backdrop:SetAllPoints()
     slot.BetterGearInfoBorder = AddBorder(slot, BORDER)
 
-    if icon then
-        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        icon:ClearAllPoints()
-        icon:SetPoint("TOPLEFT", slot, "TOPLEFT", 2, -2)
-        icon:SetPoint("BOTTOMRIGHT", slot, "BOTTOMRIGHT", -2, 2)
+    slot:HookScript("OnShow", QueueEquipmentSlotVisuals)
+    -- Catch frames created asynchronously without rescanning every rendered frame.
+    local elapsedSinceCheck = 0
+    slot:HookScript("OnUpdate", function(self, elapsed)
+        elapsedSinceCheck = elapsedSinceCheck + elapsed
+        if elapsedSinceCheck < 0.2 then return end
+        elapsedSinceCheck = 0
+        SuppressEquipmentSlotBorders(self)
+    end)
+    if not equipmentVisualHooksInstalled then
+        equipmentVisualHooksInstalled = true
+        for _, update in ipairs({ "PaperDollItemSlotButton_Update", "SetItemButtonQuality" }) do
+            if type(_G[update]) == "function" then
+                hooksecurefunc(update, QueueEquipmentSlotVisuals)
+            end
+        end
     end
-
-    local normal = slot:GetNormalTexture()
-    if normal then normal:SetTexture(nil) end
-    local pushed = slot:GetPushedTexture()
-    if pushed then pushed:SetTexture(nil) end
-    if highlight then
-        highlight:SetTexture(WHITE)
-        highlight:SetVertexColor(1, 1, 1, 0.14)
-        highlight:SetAllPoints()
-    end
+    QueueEquipmentSlotVisuals(slot)
 end
+
 
 local function SkinStats()
     local pane = CharacterStatsPane
@@ -455,8 +521,8 @@ local function SkinCharacterFrame()
         TrySkinHoverCloseButton(character, close)
     end
 
-    for _, info in ipairs(slots) do
-        SkinEquipmentSlot(_G[slotButtons[info[1]]])
+    for _, buttonName in pairs(slotButtons) do
+        SkinEquipmentSlot(_G[buttonName])
     end
     if type(PaperDollFrame_UpdateStats) == "function" then
         hooksecurefunc("PaperDollFrame_UpdateStats", UpdateStatRows)
