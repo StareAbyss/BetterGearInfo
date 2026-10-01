@@ -34,6 +34,7 @@
 python -m pip install -r tests/requirements.txt
 python tests/test_inventory.py
 python tests/test_close_initialization.py
+python tests/test_equipment_slots.py
 python scripts/package.py
 git diff --check
 ```

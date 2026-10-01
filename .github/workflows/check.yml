@@ -21,6 +21,7 @@ jobs:
       - run: python -m pip install -r tests/requirements.txt
       - run: python tests/test_inventory.py
       - run: python tests/test_close_initialization.py
+      - run: python tests/test_equipment_slots.py
       - run: python scripts/package.py
       - uses: actions/upload-artifact@v4
         with:
